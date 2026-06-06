@@ -15,7 +15,7 @@ object SmartHomeAlarmSystemApp:
     val nightMode = Mode.fromSet(perimeter ++ livingArea)
 
     val all = perimeter ++ livingArea ++ sleepingArea
-
-    val system = ActorSystem(SmartHomeAlarmSystem(all), "SmartHomeAlarmSystem")
+    val pinCode = 1234
+    val system = ActorSystem(SmartHomeAlarmSystem(all, pinCode), "SmartHomeAlarmSystem")
     system.log.info(s"Alarm system created with ${all.size} sensors.")
 
