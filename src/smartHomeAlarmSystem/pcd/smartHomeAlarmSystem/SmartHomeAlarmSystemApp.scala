@@ -1,4 +1,4 @@
-package smartHomeAlarmSystem
+package pcd.smartHomeAlarmSystem
 
 // import org.apache.pekko.actor.typed.*
 
