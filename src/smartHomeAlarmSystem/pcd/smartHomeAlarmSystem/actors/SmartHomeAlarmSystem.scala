@@ -24,7 +24,7 @@ object SmartHomeAlarmSystem:
   def apply(sensors: Set[Sensor], pinCode: Int): Behavior[Command] =
     Behaviors.setup: context =>
       sensors.foreach(sensor =>
-        context.spawn(SensorActor(sensor), sensor.name)
+        context.spawn(SensorActor(sensor)(using context.self), sensor.name)
       )
       Behaviors.withTimers: timers =>
         disarmed(using pinCode, timers)
