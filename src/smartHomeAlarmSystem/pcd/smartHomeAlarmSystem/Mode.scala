@@ -8,10 +8,13 @@ trait Mode:
 
 object Mode:
   
-  def fromSet(activeSensors: Set[Sensor]): Mode =
-    activeSensors.contains(_)
+  def fromSet(activeSensors: Set[Sensor], name: String): Mode =
+    new Mode:
+      override def isActive(sensor: Sensor): Boolean = activeSensors.contains(sensor)
+      override def toString: String = name
 
-  val AllActive: Mode = _ => true
-  
-  val AllInactive: Mode = _ => false
+  val AllActive: Mode =
+    new Mode:
+      override def isActive(sensor: Sensor): Boolean = true
+      override def toString: String = "AllActive"
 

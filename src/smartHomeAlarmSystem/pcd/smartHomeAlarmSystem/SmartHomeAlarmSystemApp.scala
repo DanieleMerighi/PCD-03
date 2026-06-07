@@ -10,13 +10,13 @@ object SmartHomeAlarmSystemApp:
   @main
   def app(): Unit =
     // First floor
-    val kitchenWindow = Sensor("Kitchen window", Window)
-    val loungeWindow = Sensor("Lounge window", Window)
-    val hallwayWindow = Sensor("Hallway window", Window)
-    val frontDoor = Sensor("Front door", Door)
-    val hallwayMotion = Sensor("Hallway motion", Motion)
-    val loungeMotion = Sensor("Lounge motion", Motion)
-    val kitchenMotion = Sensor("Kitchen motion", Motion)
+    val kitchenWindow = Sensor("KitchenWindow", Window)
+    val loungeWindow = Sensor("LoungeWindow", Window)
+    val hallwayWindow = Sensor("HallwayWindow", Window)
+    val frontDoor = Sensor("FrontDoor", Door)
+    val hallwayMotion = Sensor("HallwayMotion", Motion)
+    val loungeMotion = Sensor("LoungeMotion", Motion)
+    val kitchenMotion = Sensor("KitchenMotion", Motion)
 
     val livingArea = Set[Sensor](kitchenWindow,
       loungeWindow,
@@ -27,12 +27,12 @@ object SmartHomeAlarmSystemApp:
       kitchenMotion)
 
     // Second floor
-    val bathroomWindow = Sensor("Bathroom window", Window)
-    val kidsBedroomWindow = Sensor("Kids bedroom window", Window)
-    val masterBedroomWindow = Sensor("Master bedroom window", Window)
-    val bathroomMotion = Sensor("Bathroom motion", Motion)
-    val kidsBedroomMotion = Sensor("Kids bedroom motion", Motion)
-    val masterBedroomMotion = Sensor("Master bedroom motion", Motion)
+    val bathroomWindow = Sensor("BathroomWindow", Window)
+    val kidsBedroomWindow = Sensor("KidsBedroomWindow", Window)
+    val masterBedroomWindow = Sensor("MasterBedroomWindow", Window)
+    val bathroomMotion = Sensor("BathroomMotion", Motion)
+    val kidsBedroomMotion = Sensor("KidsBedroomMotion", Motion)
+    val masterBedroomMotion = Sensor("MasterBedroomMotion", Motion)
 
     val sleepingArea = Set[Sensor](bathroomWindow,
       kidsBedroomWindow,
@@ -41,21 +41,71 @@ object SmartHomeAlarmSystemApp:
       kitchenMotion,
       masterBedroomMotion)
 
-    val outsideFrontYardMotion = Sensor("Front yard motion", Motion)
-    val outsideBackYardMotion = Sensor("Back yard motion", Motion)
-    val outsideShedMotion = Sensor("Shed motion", Motion)
-    val outsideShedDoor = Sensor("Shed door", Door)
+    val frontYardMotion = Sensor("FrontYardMotion", Motion)
+    val backYardMotion = Sensor("BackYardMotion", Motion)
+    val shedMotion = Sensor("ShedMotion", Motion)
+    val shedDoor = Sensor("ShedDoor", Door)
 
-    val perimeter = Set[Sensor](outsideFrontYardMotion,
-      outsideBackYardMotion,
-      outsideShedMotion,
-      outsideShedDoor)
+    val perimeter = Set[Sensor](frontYardMotion,
+      backYardMotion,
+      shedMotion,
+      shedDoor)
 
-    val nightMode = Mode.fromSet(perimeter ++ livingArea)
+    val nightMode = Mode.fromSet(perimeter ++ livingArea, "NightMode")
 
-    val all = perimeter ++ livingArea ++ sleepingArea
-    val home = ActorSystem(Home(all), "Home")
-    
+    val allSensors = perimeter ++ livingArea ++ sleepingArea
+    val home = ActorSystem(Home(allSensors), "Home")
+
     val pinCode = 1234
     home ! Home.InstallAlarmSystem(pinCode)
+
+    // Example scenario
+
+    Thread.sleep(5000)
+
+    home ! Home.InteractWithSensor(loungeMotion) // roaming around
+    home ! Home.InteractWithSensor(hallwayMotion)
+
+    Thread.sleep(5000)
+
+    home ! Home.ArmAlarmSystem(pinCode)
+    Thread.sleep(1000)
+    home ! Home.InteractWithSensor(frontDoor) // on the way out
+    home ! Home.InteractWithSensor(frontYardMotion)
+
+    Thread.sleep(5000)
+
+    home ! Home.InteractWithSensor(frontYardMotion) // on the way in
+    home ! Home.InteractWithSensor(frontDoor)
+    Thread.sleep(1000)
+    home ! Home.DisarmAlarmSystem(pinCode)
+
+    Thread.sleep(5000)
+
+    home ! Home.InteractWithSensor(kitchenMotion) // roaming around
+
+    Thread.sleep(5000)
+
+    home ! Home.ArmAlarmSystem(pinCode, nightMode)
+    Thread.sleep(1000)
+    home ! Home.InteractWithSensor(hallwayMotion) // on the way up
+
+    Thread.sleep(20000)
+
+    home ! Home.InteractWithSensor(masterBedroomMotion) // roaming around upstairs
+    home ! Home.InteractWithSensor(masterBedroomWindow)
+
+    Thread.sleep(5000)
+
+    home ! Home.InteractWithSensor(backYardMotion) // intruder
+    Thread.sleep(5000)
+    home ! Home.InteractWithSensor(loungeWindow)
+    Thread.sleep(2000)
+    home ! Home.InteractWithSensor(loungeMotion)
+    Thread.sleep(4000)
+    home ! Home.InteractWithSensor(hallwayMotion) // gets caught
+
+    Thread.sleep(10000)
+
+    home ! Home.DisarmAlarmSystem(pinCode)
 

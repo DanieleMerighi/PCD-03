@@ -27,6 +27,7 @@ object Home:
                         context: ActorContext[Command]): Behavior[Command] =
     Behaviors.receiveMessagePartial:
       case InstallAlarmSystem(pinCode) =>
+        context.log.info("Installing the Alarm System.")
         val alarmSystem = context.spawn(SmartHomeAlarmSystem(pinCode), "SmartHomeAlarmSystem")
         sensors.foreachValue(_ ! SensorActor.Connect(alarmSystem))
         secured(using sensors, alarmSystem)

@@ -12,7 +12,7 @@ object SensorActor:
     case Fire()
 
   export Command.*
-  
+
   def apply(sensor: Sensor): Behavior[Command] =
     unconnected(using sensor)
 
@@ -22,8 +22,9 @@ object SensorActor:
         connected(using sensor, alarmSystem)
 
   private def connected(using sensor: Sensor, alarmSystem: ActorRef[SmartHomeAlarmSystem.Command]): Behavior[Command] =
-    Behaviors.receiveMessagePartial:
-      case Fire() =>
+    Behaviors.receivePartial:
+      case (context, Fire()) =>
+        context.log.info(s"Sensor \"${sensor.name}\" firing.")
         alarmSystem ! SmartHomeAlarmSystem.HandleSensorFiring(sensor)
         Behaviors.same
 
