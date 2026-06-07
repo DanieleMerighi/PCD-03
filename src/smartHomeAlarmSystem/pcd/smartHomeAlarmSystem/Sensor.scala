@@ -1,5 +1,6 @@
 package pcd.smartHomeAlarmSystem
 
+
 case class Sensor(name: String, `type`: Sensor.Type)
 
 

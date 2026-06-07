@@ -19,9 +19,9 @@ object PersonActor:
   export Command.*
 
   def apply(duration: FiniteDuration): Behavior[Command] = {
-    Behaviors.setup: contex =>
+    Behaviors.setup: context =>
       Behaviors.withTimers: timers =>
-        awake(contex, timers, duration)
+        awake(context, timers, duration)
   }
 
   private def awake(

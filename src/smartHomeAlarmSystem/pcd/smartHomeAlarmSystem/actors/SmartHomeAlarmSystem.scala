@@ -9,25 +9,21 @@ import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
 object SmartHomeAlarmSystem:
 
-  private val exitDelayDuration: FiniteDuration = 1.second
-  private val entryDelayDuration: FiniteDuration = 1.second
+  private val exitDelayDuration: FiniteDuration = 20.second
+  private val entryDelayDuration: FiniteDuration = 10.second
 
   enum Command:
-    case HandleSensorFiring(source: Sensor)
     case Arm(code: Int, mode: Mode = Mode.AllActive)
     case Disarm(code: Int)
     private[SmartHomeAlarmSystem] case HandleDelayEnd()
+    case HandleSensorFiring(source: Sensor)
 
   import Command.*
   export Command.{HandleDelayEnd as _, *}
 
-  def apply(sensors: Set[Sensor], pinCode: Int): Behavior[Command] =
-    Behaviors.setup: context =>
-      sensors.foreach(sensor =>
-        context.spawn(SensorActor(sensor)(using context.self), sensor.name)
-      )
-      Behaviors.withTimers: timers =>
-        disarmed(using pinCode, timers)
+  def apply(pinCode: Int): Behavior[Command] =
+    Behaviors.withTimers: timers =>
+      disarmed(using pinCode, timers)
 
   private def disarmed(using pinCode: Int, timers: TimerScheduler[Command]): Behavior[Command] =
     Behaviors.receiveMessagePartial:

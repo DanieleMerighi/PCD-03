@@ -1,7 +1,7 @@
 package pcd.smartHomeAlarmSystem
 
 import org.apache.pekko.actor.typed.ActorSystem
-import pcd.smartHomeAlarmSystem.actors.SmartHomeAlarmSystem
+import pcd.smartHomeAlarmSystem.actors.Home
 
 
 object SmartHomeAlarmSystemApp:
@@ -15,7 +15,8 @@ object SmartHomeAlarmSystemApp:
     val nightMode = Mode.fromSet(perimeter ++ livingArea)
 
     val all = perimeter ++ livingArea ++ sleepingArea
+    val home = ActorSystem(Home(all), "Home")
+    
     val pinCode = 1234
-    val system = ActorSystem(SmartHomeAlarmSystem(all, pinCode), "SmartHomeAlarmSystem")
-    system.log.info(s"Alarm system created with ${all.size} sensors.")
+    home ! Home.InstallAlarmSystem(pinCode)
 
