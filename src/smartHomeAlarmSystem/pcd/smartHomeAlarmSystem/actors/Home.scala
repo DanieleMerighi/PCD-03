@@ -18,6 +18,7 @@ object Home:
 
   def apply(sensors: Set[Sensor]): Behavior[Command] =
     Behaviors.setup: context =>
+      context.setLoggerName(classOf[Home.type])
       val sensorActors = sensors.associateWith(sensor =>
         context.spawn(SensorActor(sensor), sensor.name)
       )

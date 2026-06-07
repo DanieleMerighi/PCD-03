@@ -109,3 +109,5 @@ object SmartHomeAlarmSystemApp:
 
     home ! Home.DisarmAlarmSystem(pinCode)
 
+    home.terminate()
+

@@ -14,7 +14,9 @@ object SensorActor:
   export Command.*
 
   def apply(sensor: Sensor): Behavior[Command] =
-    unconnected(using sensor)
+    Behaviors.setup: context =>
+      context.setLoggerName(classOf[SensorActor.type])
+      unconnected(using sensor)
 
   private def unconnected(using sensor: Sensor): Behavior[Command] =
     Behaviors.receiveMessagePartial:

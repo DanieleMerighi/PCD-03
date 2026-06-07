@@ -22,8 +22,10 @@ object SmartHomeAlarmSystem:
   export Command.{HandleDelayEnd as _, *}
 
   def apply(pinCode: Int): Behavior[Command] =
-    Behaviors.withTimers: timers =>
-      disarmed(using pinCode, timers)
+    Behaviors.setup: context =>
+      context.setLoggerName(classOf[SmartHomeAlarmSystem.type])
+      Behaviors.withTimers: timers =>
+        disarmed(using pinCode, timers)
 
   private def disarmed(using pinCode: Int, timers: TimerScheduler[Command]): Behavior[Command] =
     Behaviors.receivePartial:
