@@ -1,0 +1,55 @@
+\documentclass{scrartcl}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{natbib}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{amsmath}
+
+
+\usepackage{cleveref} % this must be the last package to be loaded
+
+\title{\LARGE
+  Odds-and-Evens Game and \\ Smart Home Alarm System
+}
+\subtitle{Concurrent and Distributed Programming\\a.y. 2025--2026}
+
+\author{
+    Buda Marco \and Merighi Daniele \and Turchi Jacopo
+}
+
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Smart Home Alarm System}
+
+This exercise is about the implementation of software for a hypothetical smart home alarm control system using the actor programming model.
+
+\subsection{Identified Requirements}
+
+The central control system is placed within the context of a network of sensors.
+
+TODO.
+
+\subsection{Design and Implementation Strategy}
+
+Apache Pekko is chosen as the framework to enable development through the actor model, along with Scala as the supporting programming language. The proposed solution features three kinds of actors: the central \texttt{SmartHomeAlarmSystem}, a number of peripheral \texttt{SensorActor}s, and a \texttt{Home} actor which serves as a guardian for the other actor instances and allows for their interaction with the outside world.
+
+All actors are implemented using the functional style (i.e. ``actor as a function'' philosophy), allowing for explicit management of the program's state.
+
+\paragraph{Protocol} The \texttt{SmartHomeAlarmSystem} actor accepts four kinds of command messages:
+\begin{itemize}
+\item \texttt{Arm}, which is handled in the \texttt{disarmed} state and contains an entered PIN code along with an optional custom arming mode.
+\item \texttt{Disarm}, which is handled in every state except \texttt{disarmed} and contains an entered PIN code.
+\item \texttt{HandleDelayEnd}, which is used internally to signal the end of a timer for exit or entry delay.
+\item \texttt{HandleSensorFiring}, which is handled in the \texttt{armed} state and specifies the source sensor, so that the system can check whether it should react depending on the current arming mode.
+\end{itemize}
+
+\end{document}
