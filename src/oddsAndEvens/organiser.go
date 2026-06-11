@@ -2,64 +2,80 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"math/rand"
-	"sync"
 )
 
+// namesLimit is the field size below which we print player names instead of
+// just counts, so the late rounds stay readable without flooding the output.
+const NAMES_LIMIT = 8
+
 type Organization struct {
-	PlayerName          string
-	PlayerMoveChannel   chan Move
-	ComunicationChannel chan Msg
+	PlayerName           string
+	PlayerMoveChannel    chan Move
+	CommunicationChannel chan Msg
 }
 
-func Organizer(m int, wg *sync.WaitGroup) {
-	var numberOfPlayer = 1 << m //da capire
-	organization := make(map[string]Organization)
-	currentlyPlaying := []string{}
+func Organizer(m int) {
+	var numberOfPlayer = 1 << m // 2^m players
+	currentlyPlaying := []Organization{}
 
-	for i := 0; i < numberOfPlayer; i++ {
+	for i := range numberOfPlayer {
 		playerID := fmt.Sprintf("player-%d", i)
-		comunication := make(chan Msg)
-		organization[playerID] = Organization{
-			PlayerName:          playerID,
-			PlayerMoveChannel:   spawnPlayer(comunication),
-			ComunicationChannel: comunication,
-		}
-		currentlyPlaying = append(currentlyPlaying, playerID)
+		communication := make(chan Msg)
+		currentlyPlaying = append(currentlyPlaying, Organization{
+			PlayerName:           playerID,
+			PlayerMoveChannel:    spawnPlayer(communication),
+			CommunicationChannel: communication,
+		})
 	}
 
-	for i := range currentlyPlaying {
-		j := rand.Intn(i + 1)
+	rand.Shuffle(len(currentlyPlaying), func(i, j int) {
 		currentlyPlaying[i], currentlyPlaying[j] = currentlyPlaying[j], currentlyPlaying[i]
-	}
+	})
+
+	fmt.Printf("Tournament: %d players, %d rounds\n\n", numberOfPlayer, m)
 
 	for round := 1; round <= m; round++ {
 		numGames := len(currentlyPlaying) / 2
-		var resultChannels []chan string
+		printRound(round, currentlyPlaying, numGames)
 
-		log.Printf("Round %d, giocatori %d, games: %d", round, len(currentlyPlaying), numGames)
-
-		for g := 0; g < numGames; g++ {
+		results := make([]chan Organization, numGames)
+		for g := range numGames {
 			a := currentlyPlaying[2*g]
 			b := currentlyPlaying[2*g+1]
-			result := make(chan string)
-			go Referee(organization[a], organization[b], result)
-			resultChannels = append(resultChannels, result)
+			results[g] = make(chan Organization)
+			go Referee(a, b, results[g])
 		}
 
-		for i := 0; i < len(resultChannels); i++ {
-			looser := <-resultChannels[i]
-			delete(organization, looser)
-			for j, player := range currentlyPlaying {
-				if player == looser {
-					currentlyPlaying = append(currentlyPlaying[:j], currentlyPlaying[j+1:]...)
-				}
-			}
+		winners := []Organization{}
+		for g := range numGames {
+			winners = append(winners, <-results[g])
 		}
-
-		log.Printf("%v", currentlyPlaying)
+		currentlyPlaying = winners
 	}
 
-	wg.Done()
+	fmt.Printf("\nChampion: %s\n", currentlyPlaying[0].PlayerName)
+
+	// tournament over: close the survivor's channel so its goroutine can exit
+	for _, p := range currentlyPlaying {
+		close(p.CommunicationChannel)
+	}
+}
+
+// printRound logs one line per round: a name list when few players remain,
+// otherwise just the headcount and number of games.
+func printRound(round int, players []Organization, numGames int) {
+	if len(players) <= NAMES_LIMIT {
+		fmt.Printf("Round %d: %d players -> %v\n", round, len(players), playerNames(players))
+	} else {
+		fmt.Printf("Round %d: %d players, %d games\n", round, len(players), numGames)
+	}
+}
+
+func playerNames(players []Organization) []string {
+	names := make([]string, len(players))
+	for i, p := range players {
+		names[i] = p.PlayerName
+	}
+	return names
 }

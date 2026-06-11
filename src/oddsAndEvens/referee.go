@@ -4,57 +4,24 @@ import (
 	"math/rand"
 )
 
-func Referee(playerOneOrganization Organization, playerTwoOrganization Organization, result chan string) {
-	choosenOne := rand.Intn(2) + 1
-	var choise Move
-	if choosenOne == 1 {
-		playerOneOrganization.ComunicationChannel <- Msg{
-			Type: Choise,
-		}
-		choise = <-playerOneOrganization.PlayerMoveChannel
-	} else {
-		playerTwoOrganization.ComunicationChannel <- Msg{
-			Type: Choise,
-		}
-		choise = <-playerTwoOrganization.PlayerMoveChannel
+func Referee(p1 Organization, p2 Organization, result chan Organization) {
+	chooser, other := p1, p2
+	if rand.Intn(2) == 1 {
+		chooser, other = p2, p1
 	}
 
-	playerOneOrganization.ComunicationChannel <- Msg{
-		Type: Next,
-	}
-	playerTwoOrganization.ComunicationChannel <- Msg{
-		Type: Next,
+	chooser.CommunicationChannel <- Msg{Type: Choice}
+	guess := <-chooser.PlayerMoveChannel
+
+	chooser.CommunicationChannel <- Msg{Type: Next}
+	other.CommunicationChannel <- Msg{Type: Next}
+	sum := (<-chooser.PlayerMoveChannel).Value + (<-other.PlayerMoveChannel).Value
+
+	loser, winner := other, chooser
+	if sum%2 != guess.Value {
+		loser, winner = chooser, other
 	}
 
-	moveOne := <-playerOneOrganization.PlayerMoveChannel
-	//log.Printf("[referee] recived move %d, from player %s", moveOne.Value, playerOneOrganization.PlayerName)
-	moveTwo := <-playerTwoOrganization.PlayerMoveChannel
-	//log.Printf("[referee] recived move %d, from player %s", moveTwo.Value, playerTwoOrganization.PlayerName)
-
-	//log.Printf("%d, %d", choise.Value, choosenOne)
-	if (moveOne.Value+moveTwo.Value)%2 == choise.Value {
-		if choosenOne == 1 {
-			playerTwoOrganization.ComunicationChannel <- Msg{
-				Type: Lose,
-			}
-			result <- playerTwoOrganization.PlayerName
-		} else {
-			playerOneOrganization.ComunicationChannel <- Msg{
-				Type: Lose,
-			}
-			result <- playerOneOrganization.PlayerName
-		}
-	} else {
-		if choosenOne == 1 {
-			playerOneOrganization.ComunicationChannel <- Msg{
-				Type: Lose,
-			}
-			result <- playerOneOrganization.PlayerName
-		} else {
-			playerTwoOrganization.ComunicationChannel <- Msg{
-				Type: Lose,
-			}
-			result <- playerTwoOrganization.PlayerName
-		}
-	}
+	loser.CommunicationChannel <- Msg{Type: Lose}
+	result <- winner
 }

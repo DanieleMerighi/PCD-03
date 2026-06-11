@@ -3,11 +3,14 @@ package main
 import "math/rand"
 
 const MAX_VALUE_MOVE = 6
-const MAX_VALUE_CHOISE = 2
+const MAX_VALUE_CHOICE = 2
 
 func player(communication chan Msg, move chan Move) {
 	for {
-		msg := <-communication //io mi blocco qui e aspetto i messaggi
+		msg, ok := <-communication
+		if !ok {
+			return
+		}
 		switch msg.Type {
 		case Next:
 			move <- Move{
@@ -15,9 +18,9 @@ func player(communication chan Msg, move chan Move) {
 			}
 		case Lose:
 			return
-		case Choise:
+		case Choice:
 			move <- Move{
-				Value: rand.Intn(MAX_VALUE_CHOISE),
+				Value: rand.Intn(MAX_VALUE_CHOICE),
 			}
 		}
 	}

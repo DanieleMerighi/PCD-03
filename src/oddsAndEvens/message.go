@@ -1,12 +1,12 @@
 package main
 
+type Type int
+
 const (
 	Lose Type = iota + 1
 	Next
-	Choise
+	Choice
 )
-
-type Type int
 
 type Move struct {
 	Value int
