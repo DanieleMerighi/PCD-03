@@ -60,4 +60,43 @@ The actor specifies five \texttt{Behavior}s, implementing the five states define
 
 Lastly, an exemplary scenario is added to showcase the program's functionalities. The simulation covers normal activity from a home owner, including the arming of the system in ``night mode'', which responds only to a designated set of sensors, and unexpected activity from an intruder, which triggers the alarm.
 
+\section{Odds-and-Evens Game}
+
+\subsection{Problem Analysis}
+
+The problem requires simulating an elimination tournament for a game of Odds-and-Evens among $N = 2^m$ players. The primary concurrent aspects are the following:
+
+\begin{itemize}
+    \item \textbf{Concurrent Execution}: Multiple games must run simultaneously during each round. Specifically, $N/2^k$ games execute concurrently in round $k$.
+    \item \textbf{Synchronization}: The tournament round structure mandates a synchronization barrier. Round $k+1$ cannot begin until all concurrent matches in round $k$ have concluded and the winners are identified.
+    \item \textbf{Isolated State}: Interactions must be modeled strictly through message passing, explicitly forbidding shared memory.
+    \item \textbf{Lifecycle Management}: Player entities must remain active across multiple rounds as long as they win, and terminate safely once eliminated.
+\end{itemize}
+
+\subsection{Design and Implementation Strategy}
+
+The system is implemented in Go, leveraging goroutines for concurrent entities and channels for communication and synchronization. 
+
+\paragraph{System Architecture}
+The solution consists of three primary components:
+\begin{itemize}
+    \item \texttt{Organizer}: The main execution thread. He initializes $2^m$ players, orchestrates the tournament rounds, spawns \texttt{Referee} goroutines for each match, and aggregates the winners to form the bracket for the subsequent round.
+    \item \texttt{Player}: Modeled as a persistent goroutine. He waits and listens on a control channel (\texttt{CommunicationChannel}) until he receives instructions and replies with game inputs on a data channel (\texttt{PlayerMoveChannel}). He maintains an active loop until a termination message is received.
+    \item \texttt{Referee}: An ephemeral goroutine spawned by the \texttt{Organizer} to manage a single match between two players. He oversees the match protocol and reports the winner back to the \texttt{Organizer} via a dedicated result channel.
+\end{itemize}
+
+\paragraph{Communication Protocol}
+Interactions are handled through typed messages (\texttt{Choice}, \texttt{Next}, \texttt{Lose}):
+\begin{enumerate}
+    \item The \texttt{Referee} randomly selects one player to be the chooser and requests an Even/Odd prediction (\texttt{Choice}).
+    \item The \texttt{Referee} requests a number from both players (\texttt{Next}).
+    \item Players respond with random integers constrained by game rules.
+    \item The \texttt{Referee} determines the winner based on the sum of the numbers and the chooser's prediction.
+    \item The \texttt{Referee} sends a \texttt{Lose} message to the defeated player, causing its goroutine to exit gracefully.
+    \item The \texttt{Referee} writes the winning player's structure to a \texttt{result} channel.
+\end{enumerate}
+
+\paragraph{Synchronization Barrier}
+Synchronization between rounds is achieved implicitly through channel blocking. The \texttt{Organizer} awaits data from an array of \texttt{result} channels, one for each match in the current round. The iteration to the next round begins only when all referees have submitted their respective winners.
+
 \end{document}
