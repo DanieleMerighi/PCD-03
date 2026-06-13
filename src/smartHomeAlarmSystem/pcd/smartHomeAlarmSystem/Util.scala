@@ -1,10 +1,8 @@
 package pcd.smartHomeAlarmSystem
 
-import scala.collection.IterableOps
 
-
-extension [K, V](i: Iterable[K])
-  def associateWith(valueSelector: K => V): Map[K, V] =
+extension [A](i: Iterable[A])
+  def associateWith[V](valueSelector: A => V): Map[A, V] =
     i.map(key => (key, valueSelector(key))).toMap
 
 

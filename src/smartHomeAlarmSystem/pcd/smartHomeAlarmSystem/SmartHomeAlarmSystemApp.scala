@@ -63,7 +63,7 @@ object SmartHomeAlarmSystemApp:
 
     Thread.sleep(5000)
 
-    home ! Home.InteractWithSensor(loungeMotion) // roaming around
+    home ! Home.InteractWithSensor(loungeMotion) // homeowner roaming around
     home ! Home.InteractWithSensor(hallwayMotion)
 
     Thread.sleep(5000)

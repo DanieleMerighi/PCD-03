@@ -1,6 +1,6 @@
 package pcd.smartHomeAlarmSystem.actors
 
-import org.apache.pekko.actor.typed.Behavior
+import org.apache.pekko.actor.typed.{ActorRef, Behavior}
 import org.apache.pekko.actor.typed.scaladsl.{ActorContext, Behaviors, TimerScheduler}
 import pcd.smartHomeAlarmSystem.{Mode, Sensor}
 
@@ -11,6 +11,8 @@ object SmartHomeAlarmSystem:
 
   private val exitDelayDuration: FiniteDuration = 20.second
   private val entryDelayDuration: FiniteDuration = 10.second
+
+  type Ref = ActorRef[Command]
 
   enum Command:
     case Arm(code: Int, mode: Mode = Mode.AllActive)

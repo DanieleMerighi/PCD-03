@@ -36,7 +36,9 @@ This exercise is about the implementation of software for a hypothetical smart h
 
 The central control system is placed within the context of a network of sensors. Such sensors are to be implemented as actors as well, though their main purpose is simply to propagate their activation to the control system. Indeed, sensors are always in an active state, leaving it up to the control system to determine whether to ignore or react to the firing of a given sensor, depending on its own internal state.
 
-The control system should have five states, namely \texttt{disarmed}, \texttt{exitDelay}, \texttt{armed}, \texttt{entryDelay}, and \texttt{alarm}, and should transition between them as described in the assignment, in response to incoming messages from sensors or from a supposed person, as if they were interacting with the keypad.
+Similarly, a keypad should be an actor whose only purpose is relaying the intention of arming or disarming the alarm system, along with the entered PIN code.
+
+The control system should have five states, namely \texttt{disarmed}, \texttt{exitDelay}, \texttt{armed}, \texttt{entryDelay}, and \texttt{alarm}, and should transition between them as described in the assignment, in response to incoming messages from sensors or from the keypad.
 
 The system should allow for custom arming modes, so that even in the armed state only a subset of sensors may trigger the alarm, thus extending the solution as described in the assignment's \textbf{Optional point}. A custom arming mode can be conceptualized as a predicate on the set of sensors, identifying the active subset.
 
@@ -44,7 +46,7 @@ Additionally, the program should provide a way to interact with the control syst
 
 \subsection{Design and Implementation Strategy}
 
-Apache Pekko is chosen as the framework to enable development through the actor model, along with Scala as the supporting programming language. The proposed solution features three kinds of actors: the central \texttt{SmartHomeAlarmSystem}, a number of peripheral \texttt{SensorActor}s, and a \texttt{Home} actor which serves as a guardian for the other actor instances and allows for their interaction with the outside world. Indeed, the \texttt{Home} actor represents the root element in the actor hierarchy, as well as the entry point for the program's actor system.
+Apache Pekko is chosen as the framework to enable development through the actor model, along with Scala as the supporting programming language. The proposed solution features four kinds of actors: the central \texttt{SmartHomeAlarmSystem}, a \texttt{Keypad}, a number of peripheral \texttt{SensorActor}s, and a \texttt{Home} actor which serves as a guardian for the other actor instances and allows for their interaction with the outside world. Indeed, the \texttt{Home} actor represents the root element in the actor hierarchy, as well as the entry point for the program's actor system.
 
 All actors are implemented in the functional style (i.e. ``actor as a function'' philosophy), allowing for explicit management of the program's state.
 
@@ -58,7 +60,7 @@ All actors are implemented in the functional style (i.e. ``actor as a function''
 
 The actor specifies five \texttt{Behavior}s, implementing the five states defined in the assignment. The only difference from the description is in the ability to disarm the system while it is in the \texttt{exitDelay} state or in the \texttt{armed} state, which was not an explicit requirement.
 
-Lastly, an exemplary scenario is added to showcase the program's functionalities. The simulation covers normal activity from a home owner, including the arming of the system in ``night mode'', which responds only to a designated set of sensors, and unexpected activity from an intruder, which triggers the alarm.
+Lastly, an exemplary scenario is added to showcase the program's functionalities. The simulation covers normal activity from a homeowner, including the arming of the system in ``night mode'', which responds only to a designated set of sensors, and unexpected activity from an intruder, which triggers the alarm.
 
 \section{Odds-and-Evens Game}
 

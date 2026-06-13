@@ -8,6 +8,8 @@ import pcd.smartHomeAlarmSystem.actors.Home.Command.{InstallAlarmSystem, Interac
 
 object Home:
 
+  type Ref = ActorRef[Command]
+
   enum Command:
     case InstallAlarmSystem(pinCode: Int)
     case ArmAlarmSystem(code: Int, mode: Mode = Mode.AllActive)
@@ -24,23 +26,24 @@ object Home:
       )
       unsecured(using sensorActors, context)
 
-  private def unsecured(using sensors: Map[Sensor, ActorRef[SensorActor.Command]],
+  private def unsecured(using sensors: Map[Sensor, SensorActor.Ref],
                         context: ActorContext[Command]): Behavior[Command] =
     Behaviors.receiveMessagePartial:
       case InstallAlarmSystem(pinCode) =>
         context.log.info("Installing the Alarm System.")
         val alarmSystem = context.spawn(SmartHomeAlarmSystem(pinCode), "SmartHomeAlarmSystem")
+        val keypad = context.spawn(Keypad(alarmSystem), "Keypad")
         sensors.foreachValue(_ ! SensorActor.Connect(alarmSystem))
-        secured(using sensors, alarmSystem)
+        secured(using sensors, keypad)
 
-  private def secured(using sensors: Map[Sensor, ActorRef[SensorActor.Command]],
-                      alarmSystem: ActorRef[SmartHomeAlarmSystem.Command]): Behavior[Command] =
+  private def secured(using sensors: Map[Sensor, SensorActor.Ref],
+                      keypad: Keypad.Ref): Behavior[Command] =
     Behaviors.receiveMessagePartial:
       case ArmAlarmSystem(code, mode) =>
-        alarmSystem ! SmartHomeAlarmSystem.Arm(code, mode)
+        keypad ! Keypad.Arm(code, mode)
         Behaviors.same
       case DisarmAlarmSystem(code) =>
-        alarmSystem ! SmartHomeAlarmSystem.Disarm(code)
+        keypad ! Keypad.Disarm(code)
         Behaviors.same
       case InteractWithSensor(sensor) =>
         sensors(sensor) ! SensorActor.Fire()
