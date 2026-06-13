@@ -1,8 +1,9 @@
-package main
+package actors
 
 import (
 	"fmt"
 	"math/rand"
+	"oddsAndEvens/internal/model"
 )
 
 // namesLimit is the field size below which we print player names instead of
@@ -11,8 +12,8 @@ const NAMES_LIMIT = 8
 
 type Organization struct {
 	PlayerName           string
-	PlayerMoveChannel    chan Move
-	CommunicationChannel chan Msg
+	PlayerMoveChannel    chan model.Move
+	CommunicationChannel chan model.Msg
 }
 
 func Organizer(m int) {
@@ -21,7 +22,7 @@ func Organizer(m int) {
 
 	for i := range numberOfPlayer {
 		playerID := fmt.Sprintf("player-%d", i)
-		communication := make(chan Msg)
+		communication := make(chan model.Msg)
 		currentlyPlaying = append(currentlyPlaying, Organization{
 			PlayerName:           playerID,
 			PlayerMoveChannel:    spawnPlayer(communication),

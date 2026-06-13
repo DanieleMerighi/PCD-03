@@ -1,7 +1,8 @@
-package main
+package actors
 
 import (
 	"math/rand"
+	"oddsAndEvens/internal/model"
 )
 
 func Referee(p1 Organization, p2 Organization, result chan Organization) {
@@ -10,11 +11,11 @@ func Referee(p1 Organization, p2 Organization, result chan Organization) {
 		chooser, other = p2, p1
 	}
 
-	chooser.CommunicationChannel <- Msg{Type: Choice}
+	chooser.CommunicationChannel <- model.Msg{Type: model.Choice}
 	guess := <-chooser.PlayerMoveChannel
 
-	chooser.CommunicationChannel <- Msg{Type: Next}
-	other.CommunicationChannel <- Msg{Type: Next}
+	chooser.CommunicationChannel <- model.Msg{Type: model.Next}
+	other.CommunicationChannel <- model.Msg{Type: model.Next}
 	sum := (<-chooser.PlayerMoveChannel).Value + (<-other.PlayerMoveChannel).Value
 
 	loser, winner := other, chooser
@@ -22,6 +23,6 @@ func Referee(p1 Organization, p2 Organization, result chan Organization) {
 		loser, winner = chooser, other
 	}
 
-	loser.CommunicationChannel <- Msg{Type: Lose}
+	loser.CommunicationChannel <- model.Msg{Type: model.Lose}
 	result <- winner
 }
